@@ -2,8 +2,11 @@
 # A simple container class to store the basic client information
 # @author = Shad Scarboro
 #---------------------------------------------------------------------------
+
+# Existing Ruby Gems
 require "json"
 
+#---------------------------------------------------------------------------
 class Client
   # Basic initialization method
   # @param caller_id [in] The unique ID of the Client

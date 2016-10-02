@@ -3,8 +3,8 @@
 # the Client Handler
 # @author = Shad Scarboro
 #---------------------------------------------------------------------------
-require "json"
-require "socket"
+require 'json'
+require 'socket'
 
 #---------------------------------------------------------------------------
 
