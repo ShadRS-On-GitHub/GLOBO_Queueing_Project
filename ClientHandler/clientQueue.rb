@@ -28,6 +28,15 @@ class ClientQueue
   attr_accessor :queue_completed
   attr_accessor :timing_started
 
+
+  #---------------------------------------------------------------------------
+  # Gets information on the top client
+  def peek
+    #????? This will necessitate some major changes
+    abort 
+    #?????
+  end
+
   #---------------------------------------------------------------------------
   # Pops an item off the internal queue
   # @return A client if one is available, or a nil if one isn't

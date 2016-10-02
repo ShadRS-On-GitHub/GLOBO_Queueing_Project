@@ -1,5 +1,11 @@
 A list of things that should be added or investigated with more time.
 
+Need to happen:
+-Add ReadMe.txt with instructions
+-Move various inputs to an input file
+-Rework ClientQueue to be an array with mutexes, or modify base Queue to allow the peek
+
+Unlikely to happen:
 -Use an actual testing framework to test out everything
 -Client/Server authentication
 -Use a Database for the Client Queue
