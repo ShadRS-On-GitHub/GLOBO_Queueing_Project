@@ -1,0 +1,6 @@
+A list of things that should be added or investigated with more time.
+
+-Use an actual testing framework to test out everything
+-Client/Server authentication
+-Use a Database for the Client Queue
+-Consider other networking options, Sockets may not be the best choice
