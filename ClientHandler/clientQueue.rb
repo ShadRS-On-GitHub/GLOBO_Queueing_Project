@@ -26,7 +26,8 @@ class ClientQueue
   #---------------------------------------------------------------------------
   # Basic attribute accessors
   attr_accessor :queue_completed
-  attr_accessor :timing_started
+  attr_reader :timing_started
+  attr_reader :start_time
 
 
   #---------------------------------------------------------------------------

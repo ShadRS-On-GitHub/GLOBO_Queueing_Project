@@ -14,6 +14,11 @@ require 'queueServer'
 require 'clientQueue'
 
 #---------------------------------------------------------------------------
+# Control values.  Should really be inputs instead of hardcoded
+time_out_value = 60
+client_file = "../GLOBOQueueDataForTest.csv"
+
+#---------------------------------------------------------------------------
 # Create the Client Queue, that keeps track of all the clients
 c_queue = ClientQueue.new
 
@@ -26,7 +31,7 @@ q_server = QueueServer.new (ClientCommunication::port, c_queue)
 
 #Launch operator thread
 # The operator recieves incoming Clients and sorts them
-c_operator = ClientOperator.new
+c_operator = ClientOperator.new(client_file)
 operator_thread = Thread.new ( c_operator.recieve_clients)
 
 #---------------------------------------------------------------------------
@@ -34,7 +39,7 @@ operator_thread = Thread.new ( c_operator.recieve_clients)
 #launch monitor thread
 # The monitor keeps track of the oldest client and sends them to the
 # Priority Queue as necessary
-c_monitor = ClientMonitor.new
+c_monitor = ClientMonitor.new( time_out_value )
 monitor_thread = Thread.new ( c_monitor.begin_monitoring)
 
 #---------------------------------------------------------------------------

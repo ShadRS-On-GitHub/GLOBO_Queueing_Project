@@ -1,5 +1,6 @@
 #clientMonitor.rb
-#
+# Monitors the client queue and makes sure that Clients haven't been
+# waiting too long
 # @author Shad Scarboro
 #---------------------------------------------------------------------------
 
