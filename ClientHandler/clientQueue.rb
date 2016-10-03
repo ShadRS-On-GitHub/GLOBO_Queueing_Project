@@ -31,9 +31,21 @@ class ClientQueue
 
   #---------------------------------------------------------------------------
   # Gets information on the top client
+  # @return time_in, user_id:
+  # @return time_in The time the top client entered the queue
+  # @return user_id The user id of the top client.  -1 if there are no items in the queue
   def peek
     #????? This will necessitate some major changes
-    abort 
+    abort
+    #?????
+  end
+
+  #---------------------------------------------------------------------------
+  # If the top item on the queue has the given user_id, pop it off the queue
+  # @param user_id [in] The user id to be matched to
+  def send_to_priority(user_id)
+    #?????
+    abort
     #?????
   end
 

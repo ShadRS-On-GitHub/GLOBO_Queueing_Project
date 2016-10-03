@@ -21,24 +21,40 @@ class ClientMonitor
   end
 
   #---------------------------------------------------------------------------
-  # Basic attribute accessors
-
-  #---------------------------------------------------------------------------
 
   # Begin the monitoring loop
   def begin_monitoring
     #Wait unitil the timing has started
     sleep(1) until ClientQueue.timing_started
-    last_time = Time.now
 
     until ClientQueue.queue_completed do
       #Peek at the Queue and get the top item
       time_in, user_id = ClientQueue.peek
 
-      
+      #If we have a valid client
+      if user_id > -1
+        age = Time.now - time_in
+        #If the top one has been around too long, send it to priority
+        if age >= time_out
+          ClientQueue.send_to_priority(user_id)
+        else #Else it hasn't timed out yet
+          #Sleep until this one is about to expire
+          #The minus is to handle delays in processing
+          time_to_wait = time_out - age - 2
+          if time_to_wait > 0
+            sleep(time_to_wait)
+          end
 
-    end
-
+          #Note that nothing after this one will need to wait less time
+          # This means that even if its not there when we loop back around
+          # we'll just start looking at the next one
+        end #end if (Time.now - time_in) >= time_out
+      else
+        #Nothing on the queue, so wait some time to avoid peppering the Queue
+        # with endless requests
+        sleep(time_out * 0.9 )
+      end #end if user_id > -1
+    end #end until ClientQueue.queue_completed do
   end #end begin_monitoring
 
   #---------------------------------------------------------------------------
