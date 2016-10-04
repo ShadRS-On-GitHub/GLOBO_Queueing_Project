@@ -8,7 +8,7 @@ require 'socket'
 require 'json'
 
 # Locally defined files/classes/modules
-require 'clientQueue'
+require_relative 'clientQueue.rb'
 
 #---------------------------------------------------------------------------
 class QueueServer
@@ -24,20 +24,20 @@ class QueueServer
     #---------------------------------------------------------------------------
     # Forces the message handling loop to exit
     def close
-      exit_loop = true
+      @exit_loop = true
     end
 
     #---------------------------------------------------------------------------
 
     # Execute the master messaging loop
     def listenLoop
-      Socket.accept_loop(q_server) do |contact|
+      Socket.accept_loop(@q_server) do |contact|
           puts "SERVER: Server recieved connection"
           begin
             communication = contact.recv(1024)
             puts "SERVER: Server recieved message: " + communication
 
-            exit_loop = process_communication( communication, contact )
+            process_communication( communication, contact )
 
           rescue Exception => exp
             puts "#{ exp } (#{ exp.class })"
@@ -46,7 +46,7 @@ class QueueServer
             contact.close
           end
 
-        break if exit_loop
+        break if @exit_loop
       end #end Socket.accept_loop(server) do |contact|
 
       Thread.exit
@@ -86,7 +86,7 @@ class QueueServer
 
         case msg.message_body
         when ClientCommunication::request_client
-          next_client = ClientQueue.pop
+          next_client = ClientQueue.instance.shift
 
           #Convert to JSON
           json_message = create_out_message (next_client)
@@ -109,9 +109,9 @@ class QueueServer
         out_message = next_client
 
       #Check if the Queue has completed all of its processing for the day
-      elsif ClientQueue.queue_completed
+      elsif ClientQueue.instance.queue_completed
         out_message = ClientCommunication.new(ClientCommunication::begin_shutdown)
-        exit_loop = true
+        @exit_loop = true
       #Else return a NO_CLIENTS_WAITING message
       else
         out_message = ClientCommunication.new(ClientCommunication::no_clients_available)

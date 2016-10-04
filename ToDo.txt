@@ -5,6 +5,7 @@ Need to happen:
 -Move various inputs to an input file
 -Rework ClientQueue to be an array with mutexes, or modify base Queue to allow the peek
 -Add some validation of the CSV file
+-Examine any remaining ??? for code cleanup and missed todos
 
 Unlikely to happen:
 -Use an actual testing framework to test out everything

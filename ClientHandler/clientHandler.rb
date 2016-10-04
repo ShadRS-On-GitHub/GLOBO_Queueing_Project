@@ -10,8 +10,8 @@ require 'json'
 # Locally defined files/classes/modules
 require_relative '../Client/clientCommunications.rb'
 require_relative '../Client/client.rb'
-require 'queueServer'
-require 'clientQueue'
+require_relative 'queueServer.rb'
+require_relative 'clientQueue.rb'
 
 #---------------------------------------------------------------------------
 # Control values.  Should really be inputs instead of hardcoded
@@ -19,13 +19,9 @@ time_out_value = 60
 client_file = "../GLOBOQueueDataForTest.csv"
 
 #---------------------------------------------------------------------------
-# Create the Client Queue, that keeps track of all the clients
-c_queue = ClientQueue.new
-
-#---------------------------------------------------------------------------
 #initialization of the server
 # Create TCP server
-q_server = QueueServer.new (ClientCommunication::port, c_queue)
+q_server = QueueServer.new (ClientCommunication::port)
 
 #---------------------------------------------------------------------------
 
@@ -45,10 +41,10 @@ monitor_thread = Thread.new ( c_monitor.begin_monitoring)
 #---------------------------------------------------------------------------
 
 # Everything is up, begin timing
-ClientQueue.timing_started = true
+ClientQueue.instance.begin_timing
 
 #Is this needed?
-#while ClientQueue.queue_completed
-#end #end while ClientQueue.timing_started
+#while ClientQueue.instance.queue_completed
+#end #end while ClientQueue.instance.timing_started
 
 #---------------------------------------------------------------------------
