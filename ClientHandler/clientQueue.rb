@@ -31,7 +31,8 @@ class ClientQueue
   # @param log_file [in] The file name and path to log the clients destination to
   def set_log_file( log_file )
     @mutex.synchronize {
-      @log = open(log_file, 'w') #Error Handling?
+      @log = open(log_file, 'w') #??? TODO: Add file Error Handling
+      @log.sync = true
     }
   end
 
@@ -146,7 +147,7 @@ class ClientQueue
     #Time waiting
     time_waiting = Time.now - @start_time - @c_queue.first.time_in
 
-    @log.puts "#{@c_queue.first.caller_id},#{time_waiting},#{handle_cost}"
+    @log.puts "#{@c_queue.first.caller_id},#{time_waiting.round(1)},#{handle_cost}"
     #puts "#{@c_queue.first.caller_id},#{time_waiting},#{handle_cost}"
   end
   #---------------------------------------------------------------------------

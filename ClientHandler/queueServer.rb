@@ -8,41 +8,26 @@ require 'socket'
 require 'json'
 
 # Locally defined files/classes/modules
+require_relative 'clientPipeline.rb'
 require_relative 'clientQueue.rb'
 
 #---------------------------------------------------------------------------
-class QueueServer
+class QueueServer < ClientPipeline
 
     # Basic initialization method
     # @param queue_cost [in] A client's cost for using this queue
     # @param port [in] The port the TCP server will be opened on
     def initialize(queue_cost, port)
-      @queue_cost = queue_cost
+      super(queue_cost)
       #Start the server and start listening
       @q_server = TCPServer.open(port)
-      #@listenThread = Thread.new listenLoop
-      @exit_loop = false
-      @time_out_cycle_count = 500
-    end
-    #---------------------------------------------------------------------------
-    #The cost of using this queue
-    attr_accessor :queue_cost
-
-    #---------------------------------------------------------------------------
-    # Forces the message handling loop to exit
-    def close
-      @exit_loop = true
     end
 
     #---------------------------------------------------------------------------
 
     # Execute the master messaging loop
-    def listenLoop
-      #Wait unitil the timing has started
-      while ! ClientQueue.instance.timing_started
-        puts "Sleeping! #{ClientQueue.instance.timing_started}"
-        sleep(1)
-      end
+    def begin_client_monitoring
+      super()
 
       Socket.accept_loop(@q_server) do |contact|
           #puts "SERVER: Server recieved connection"
@@ -59,10 +44,9 @@ class QueueServer
             contact.close
           end
 
-        break if @exit_loop
+        break if ClientQueue.instance.queue_completed
       end #end Socket.accept_loop(server) do |contact|
 
-      Thread.exit
     end #end def listenLoop
 
     #---------------------------------------------------------------------------
@@ -77,11 +61,9 @@ class QueueServer
 
       if communication.length >= 2
         communication = JSON.parse( communication, create_additions: true )
-        #puts "SERVER: Message parsed into JSON: #{communication.class.name}"
 
         if communication.class.name == ClientCommunication.name
           #process_message
-          #puts "SERVER: Processing Client Message"
           process_message(communication, contact)
         else
           #Bad Communication
@@ -121,15 +103,12 @@ class QueueServer
         out_message = next_client
 
       #Check if the Queue has completed all of its processing for the day
-    elsif ClientQueue.instance.queue_completed || @time_out_cycle_count <= 0
+    elsif ClientQueue.instance.queue_completed
         out_message = ClientCommunication.new(ClientCommunication::begin_shutdown)
-        @exit_loop = true
-        #???? This is temporary
-        ClientQueue.instance.queue_completed = true
+
       #Else return a NO_CLIENTS_WAITING message
       else
         out_message = ClientCommunication.new(ClientCommunication::no_clients_available)
-        @time_out_cycle_count = @time_out_cycle_count -1
       end
       return out_message.to_json
     end #end create_out_message

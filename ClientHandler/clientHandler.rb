@@ -31,7 +31,7 @@ ClientQueue.instance.set_log_file( log_file )
 #initialization of the server
 # Create TCP server
 q_server = QueueServer.new(standard_cost, ClientCommunication::port)
-server_thread = Thread.new { q_server.listenLoop }
+server_thread = Thread.new { q_server.begin_client_monitoring }
 puts "QueueServer started"
 
 #---------------------------------------------------------------------------
@@ -48,14 +48,14 @@ puts "ClientOperator started"
 # The monitor keeps track of the oldest client and sends them to the
 # Priority Queue as necessary
 c_monitor = ClientMonitor.new( priority_cost, time_out_value )
-monitor_thread = Thread.new { c_monitor.begin_monitoring }
+monitor_thread = Thread.new { c_monitor.begin_client_monitoring }
 puts "ClientMonitor started"
 #---------------------------------------------------------------------------
 
 # Everything is up, begin timing
 ClientQueue.instance.begin_timing
 
-#Is this needed?
+#Hold of getting to the joins until the queue has been completed
 until ClientQueue.instance.queue_completed
   sleep (10)
 end #end while ClientQueue.instance.timing_started

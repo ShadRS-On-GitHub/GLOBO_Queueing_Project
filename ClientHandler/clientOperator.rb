@@ -22,7 +22,7 @@ class ClientOperator
     #Read in the CSV file
     @all_clients = CSV.read(path_to_file, converters: :numeric)
     @all_clients.shift #remove the header
-    #???? Need some data validation here
+    #???? TODO: Add CSV file data validation
   end
 
   #---------------------------------------------------------------------------

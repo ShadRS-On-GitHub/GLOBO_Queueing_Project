@@ -8,31 +8,27 @@
 
 
 # Locally defined files/classes/modules
+require_relative 'clientPipeline.rb'
 require_relative 'clientQueue.rb'
 
 #---------------------------------------------------------------------------
 
-class ClientMonitor
+class ClientMonitor < ClientPipeline
 
   #---------------------------------------------------------------------------
   # Basic initialization method
   # @param queue_cost [in] A client's cost for using this queue
-  # @param time_out [in] The time at which a clent is moved to the Priority queue
+  # @param time_out [in] The time (in seconds) after which a clent is moved to the Priority queue
   def initialize (queue_cost, time_out)
-    @queue_cost = queue_cost
+    super(queue_cost)
     @time_out = time_out
   end
 
   #---------------------------------------------------------------------------
-  #---------------------------------------------------------------------------
-  #The cost of using this queue
-  attr_accessor :queue_cost
-  #---------------------------------------------------------------------------
 
   # Begin the monitoring loop
-  def begin_monitoring
-    #Wait unitil the timing has started
-    sleep(1) until ClientQueue.instance.timing_started
+  def begin_client_monitoring
+    super()
 
     until ClientQueue.instance.queue_completed do
       #Peek at the Queue and get the top item

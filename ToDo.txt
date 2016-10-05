@@ -1,11 +1,8 @@
 A list of things that should be added or investigated with more time.
 
-Need to happen:
--Add ReadMe.txt with instructions
+Should happen:
 -Move various inputs to an input file
--Rework ClientQueue to be an array with mutexes, or modify base Queue to allow the peek
 -Add some validation of the CSV file
--Examine any remaining ??? for code cleanup and missed todos
 
 Unlikely to happen:
 -Use an actual testing framework to test out everything
