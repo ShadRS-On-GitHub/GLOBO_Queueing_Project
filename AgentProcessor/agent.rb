@@ -34,12 +34,6 @@ class Agent
     #Get the response message
     handler_response = JSON.parse(socket.recv(1024), create_additions: true )
 
-    #????
-    puts "Agent:Recieved client response"
-    #????
-
-    #How to do timeout here?
-    #????
     return handler_response
   end #End send_client_request
 

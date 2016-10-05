@@ -16,11 +16,17 @@ class ClientMonitor
 
   #---------------------------------------------------------------------------
   # Basic initialization method
+  # @param queue_cost [in] A client's cost for using this queue
   # @param time_out [in] The time at which a clent is moved to the Priority queue
-  def initialize (time_out)
+  def initialize (queue_cost, time_out)
+    @queue_cost = queue_cost
     @time_out = time_out
   end
 
+  #---------------------------------------------------------------------------
+  #---------------------------------------------------------------------------
+  #The cost of using this queue
+  attr_accessor :queue_cost
   #---------------------------------------------------------------------------
 
   # Begin the monitoring loop
@@ -37,7 +43,7 @@ class ClientMonitor
         age = Time.now - time_in
         #If the top one has been around too long, send it to priority
         if age >= @time_out
-          ClientQueue.instance.send_to_priority(user_id)
+          ClientQueue.instance.shift(@queue_cost, user_id)
         else #Else it hasn't timed out yet
           #Sleep until this one is about to expire
           #The minus is to handle delays in processing

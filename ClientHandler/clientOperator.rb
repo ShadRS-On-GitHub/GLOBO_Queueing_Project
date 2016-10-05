@@ -32,8 +32,8 @@ class ClientOperator
     sleep(1) until ClientQueue.instance.timing_started
 
     #Keep going until all clients have been added to the queue
-    while @all_clients.length > 0
-      next_add_at = @all_clients[0][1] + ClientQueue.instance.start_time
+    while @all_clients.length > 0 && ! ClientQueue.instance.queue_completed
+      next_add_at = ClientQueue.instance.start_time + @all_clients[0][1]
 
       #Passed the time to add the client, add it now
       if( Time.now > next_add_at)

@@ -14,13 +14,20 @@ require_relative 'clientQueue.rb'
 class QueueServer
 
     # Basic initialization method
+    # @param queue_cost [in] A client's cost for using this queue
     # @param port [in] The port the TCP server will be opened on
-    def initialize(port)
+    def initialize(queue_cost, port)
+      @queue_cost = queue_cost
       #Start the server and start listening
       @q_server = TCPServer.open(port)
-      @listenThread = Thread.new listenLoop
+      #@listenThread = Thread.new listenLoop
       @exit_loop = false
+      @time_out_cycle_count = 500
     end
+    #---------------------------------------------------------------------------
+    #The cost of using this queue
+    attr_accessor :queue_cost
+
     #---------------------------------------------------------------------------
     # Forces the message handling loop to exit
     def close
@@ -31,11 +38,17 @@ class QueueServer
 
     # Execute the master messaging loop
     def listenLoop
+      #Wait unitil the timing has started
+      while ! ClientQueue.instance.timing_started
+        puts "Sleeping! #{ClientQueue.instance.timing_started}"
+        sleep(1)
+      end
+
       Socket.accept_loop(@q_server) do |contact|
-          puts "SERVER: Server recieved connection"
+          #puts "SERVER: Server recieved connection"
           begin
             communication = contact.recv(1024)
-            puts "SERVER: Server recieved message: " + communication
+            #puts "SERVER: Server recieved message: #{communication}"
 
             process_communication( communication, contact )
 
@@ -64,11 +77,11 @@ class QueueServer
 
       if communication.length >= 2
         communication = JSON.parse( communication, create_additions: true )
-        puts "SERVER: Message parsed into JSON: #{communication.class.name}"
+        #puts "SERVER: Message parsed into JSON: #{communication.class.name}"
 
         if communication.class.name == ClientCommunication.name
           #process_message
-          puts "SERVER: Processing Client Message"
+          #puts "SERVER: Processing Client Message"
           process_message(communication, contact)
         else
           #Bad Communication
@@ -83,10 +96,9 @@ class QueueServer
     # @param msg [in] The JSON message to be processed
     # @param contact [out] The socket so that the processing can send responses
     def process_message ( msg, contact )
-
-        case msg.message_body
+      case msg.message_body
         when ClientCommunication::request_client
-          next_client = ClientQueue.instance.shift
+          next_client = ClientQueue.instance.shift(@queue_cost)
 
           #Convert to JSON
           json_message = create_out_message (next_client)
@@ -105,16 +117,19 @@ class QueueServer
     def create_out_message ( next_client )
       out_message = nil
       #If the next client is valid, send it along
-      if next_client
+      if next_client != nil
         out_message = next_client
 
       #Check if the Queue has completed all of its processing for the day
-      elsif ClientQueue.instance.queue_completed
+    elsif ClientQueue.instance.queue_completed || @time_out_cycle_count <= 0
         out_message = ClientCommunication.new(ClientCommunication::begin_shutdown)
         @exit_loop = true
+        #???? This is temporary
+        ClientQueue.instance.queue_completed = true
       #Else return a NO_CLIENTS_WAITING message
       else
         out_message = ClientCommunication.new(ClientCommunication::no_clients_available)
+        @time_out_cycle_count = @time_out_cycle_count -1
       end
       return out_message.to_json
     end #end create_out_message

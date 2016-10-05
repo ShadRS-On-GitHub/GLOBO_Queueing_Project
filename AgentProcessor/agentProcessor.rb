@@ -48,6 +48,9 @@ loop do
   when Client.name #Handle the Client
     Agent::process_client(handler_response)
     last_time = Time.now #Update that we know the server still exists
+    #????
+    puts "Agent:Recieved client response #{handler_response}"
+    #????
 
   else
     #Report Error

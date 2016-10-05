@@ -27,25 +27,39 @@ class ClientQueue
   end
 
   #---------------------------------------------------------------------------
+  # Opens the log file
+  # @param log_file [in] The file name and path to log the clients destination to
+  def set_log_file( log_file )
+    @mutex.synchronize {
+      @log = open(log_file, 'w') #Error Handling?
+    }
+  end
+
+  #---------------------------------------------------------------------------
   # Thread safe attribute accessors, the default methods are not thread safe :(
 
   #attr_accessor :queue_completed
   def queue_completed=(q_comp)
     @mutex.synchronize {
       @queue_completed = q_comp
+
+      #If the Queue is completed, then logging is no longer needed
+      if @queue_completed
+        @log.close
+      end
     }
   end
 
   def queue_completed
     @mutex.synchronize {
-      @queue_completed
+      return @queue_completed
     }
   end
 
   #attr_reader :timing_started
   def timing_started
     @mutex.synchronize {
-      @timing_started
+      return @timing_started
     }
   end
 
@@ -53,9 +67,9 @@ class ClientQueue
   def start_time
     @mutex.synchronize {
       if(@timing_started)
-        @start_time
+        return @start_time
       else
-        nil
+        return nil
       end
     }
   end
@@ -69,34 +83,31 @@ class ClientQueue
       unless @timing_started
         @timing_started = true
         @start_time = Time.now
+
+        puts "Timing began at #{@start_time}"
       end
     }
-  end
-
-  #---------------------------------------------------------------------------
-  # If the top item on the queue has the given user_id, pop it off the queue
-  # @param user_id [in] The user id to be matched to
-  # @return Returns true if the removal was successful. false otherwise
-  def send_to_priority(user_id)
-    @mutex.synchronize {
-      if @timing_started && (!(@c_queue.empty?) && @c_queue[0].user_id == user_id)
-        @c_queue.pop
-        return true
-      end
-
-      return false
-    }
-
   end
 
   #---------------------------------------------------------------------------
   # Pops an item off the front of the internal queue
+  # @param handle_cost [in] The cost of the destination queue
+  # @param user_id [in] If not less than 0, the shift will only occur when
+  #                     the top element has that user id
   # @return A client if one is available, or a nil if one isn't
-  def shift
+  def shift( handle_cost, user_id = -1)
     @mutex.synchronize {
-      if @c_queue.empty? || !@timing_started
+      if user_id >= 0
+        if @timing_started && (!(@c_queue.empty?) && @c_queue.first.user_id == user_id)
+          log_destination (handle_cost)
+          @c_queue.shift
+        end
+
+        return nil
+      elsif @c_queue.empty? || !@timing_started
         return nil
       else
+        log_destination (handle_cost)
         return @c_queue.shift
       end
     }
@@ -125,6 +136,18 @@ class ClientQueue
          return @c_queue.first.time_in, @c_queue.first.caller_id
        end
    }
+  end
+  #---------------------------------------------------------------------------
+
+  #---------------------------------------------------------------------------
+  # Logs the top record and its intended
+  # @param isPriority [in] If the destination is a priority queue
+  def log_destination ( handle_cost )
+    #Time waiting
+    time_waiting = Time.now - @start_time - @c_queue.first.time_in
+
+    @log.puts "#{@c_queue.first.caller_id},#{time_waiting},#{handle_cost}"
+    #puts "#{@c_queue.first.caller_id},#{time_waiting},#{handle_cost}"
   end
   #---------------------------------------------------------------------------
 
