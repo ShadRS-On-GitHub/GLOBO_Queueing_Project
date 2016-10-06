@@ -29,11 +29,11 @@ start_time = ClientQueue.instance.start_time
 puts "Queue started at #{start_time}"
 
 time_in, user_id = ClientQueue.instance.peek
-puts "Peek after timing started, should be (2,1) is: (#{time_in},#{user_id})"
-clt = ClientQueue.instance.shift
-puts "shift after timing started, should be (2,1) is: (#{clt.time_in},#{clt.caller_id})"
+puts "Peek after timing started, should be (#{start_time+2},1) is: (#{time_in},#{user_id})"
+clt = ClientQueue.instance.shift(1)
+puts "shift after timing started, should be (#{start_time+2},1) is: #{clt}"
 
 time_in2, user_id2 = ClientQueue.instance.peek
-puts "Peek(2) after timing started, should be (5,4) is: (#{time_in2},#{user_id2})"
-clt2 = ClientQueue.instance.shift
-puts "shift after timing started, should be (5,4) is: (#{clt2.time_in},#{clt2.caller_id})"
+puts "Peek(2) after timing started, should be (#{start_time+5},4) is: (#{time_in2},#{user_id2})"
+clt2 = ClientQueue.instance.shift(1)
+puts "shift after timing started, should be (#{start_time+5},4) is: #{clt2}"

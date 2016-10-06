@@ -30,7 +30,8 @@ last_time = Time.now
 
 loop do
   #Open out socket
-  socket = TCPSocket.open(queue_name,ClientCommunication::port)
+  socket = TCPSocket.new(queue_name,ClientCommunication::port)
+  socket.setsockopt(:SOCKET, :KEEPALIVE, true)
 
   #Request a new client
   handler_response = Agent::send_client_request( socket )
@@ -48,9 +49,7 @@ loop do
   when Client.name #Handle the Client
     Agent::process_client(handler_response)
     last_time = Time.now #Update that we know the server still exists
-    #????
     puts "Agent:Recieved client response #{handler_response}"
-    #????
 
   else
     #Report Error
@@ -61,6 +60,4 @@ loop do
   break if (Time.now - last_time) > time_out
 end
 
-#????
 puts "AgentProcessor - Exiting"
-#????

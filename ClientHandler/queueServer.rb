@@ -19,8 +19,11 @@ class QueueServer < ClientPipeline
     # @param port [in] The port the TCP server will be opened on
     def initialize(queue_cost, port)
       super(queue_cost)
+
+      @sent_shutdown = false
       #Start the server and start listening
       @q_server = TCPServer.open(port)
+
     end
 
     #---------------------------------------------------------------------------
@@ -44,8 +47,10 @@ class QueueServer < ClientPipeline
             contact.close
           end
 
-        break if ClientQueue.instance.queue_completed
+        break if (ClientQueue.instance.queue_completed && @sent_shutdown)
       end #end Socket.accept_loop(server) do |contact|
+
+      puts "SERVER: Exiting"
 
     end #end def listenLoop
 
@@ -85,8 +90,15 @@ class QueueServer < ClientPipeline
           #Convert to JSON
           json_message = create_out_message (next_client)
 
-          #Send the message
-          contact.send(json_message, 0)
+          #Double check that we don't send a bad request
+          if json_message.length >= 2
+            #Send the message
+            contact.send(json_message, 0)
+          else #Why do we have a bad message?
+            puts "SERVER: Bad Message going out: #{json_message}"
+            puts "SERVER: Next Client: #{next_client}"
+            puts "SERVER: Queue completed? #{ClientQueue.instance.queue_completed}"
+          end
         else
           puts "ERROR! - Unsupported message type - " + msg.message_body
         end #End case msg.message_body
@@ -103,8 +115,9 @@ class QueueServer < ClientPipeline
         out_message = next_client
 
       #Check if the Queue has completed all of its processing for the day
-    elsif ClientQueue.instance.queue_completed
+      elsif ClientQueue.instance.queue_completed
         out_message = ClientCommunication.new(ClientCommunication::begin_shutdown)
+        @sent_shutdown = true
 
       #Else return a NO_CLIENTS_WAITING message
       else

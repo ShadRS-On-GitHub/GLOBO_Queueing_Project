@@ -32,7 +32,7 @@ class ClientOperator
     sleep(1) until ClientQueue.instance.timing_started
 
     #Keep going until all clients have been added to the queue
-    while @all_clients.length > 0 && ! ClientQueue.instance.queue_completed
+    while @all_clients.length > 0 #&& ! ClientQueue.instance.expect_no_more
       next_add_at = ClientQueue.instance.start_time + @all_clients[0][1]
 
       #Passed the time to add the client, add it now
@@ -47,7 +47,7 @@ class ClientOperator
     end #end while @all_clients.length > 0
 
     #Let the ClientQueue know it will not be recieving any more Clients
-    ClientQueue.instance.queue_completed = true
+    ClientQueue.instance.expect_no_more = true
   end #end recieve_clients
 
   #---------------------------------------------------------------------------

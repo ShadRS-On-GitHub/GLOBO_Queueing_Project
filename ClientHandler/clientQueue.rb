@@ -21,6 +21,7 @@ class ClientQueue
   # Basic initialization method
   def initialize
     @queue_completed = false
+    @expect_no_more = false
     @timing_started = false
     @c_queue = Array.new
     @mutex = Mutex.new
@@ -75,6 +76,18 @@ class ClientQueue
     }
   end
 
+  #attr_accessor :expect_no_more
+  def expect_no_more=(val)
+    @mutex.synchronize {
+      @expect_no_more = val
+    }
+  end
+
+  def expect_no_more
+    @mutex.synchronize {
+      @expect_no_more
+    }
+  end
 
   #---------------------------------------------------------------------------
   # Sets start_time to the current time and timing_started to true
@@ -99,9 +112,15 @@ class ClientQueue
   def shift( handle_cost, user_id = -1)
     @mutex.synchronize {
       if user_id >= 0
-        if @timing_started && (!(@c_queue.empty?) && @c_queue.first.user_id == user_id)
+        if @timing_started && (!(@c_queue.empty?) && @c_queue.first.caller_id == user_id)
           log_destination (handle_cost)
-          @c_queue.shift
+
+          #If the length is one, then this shift will empty us
+          #If we've been told to expect no more, then we are completed
+          if @c_queue.length == 1 && @expect_no_more
+            @queue_completed = true
+          end
+          return @c_queue.shift
         end
 
         return nil
@@ -109,6 +128,12 @@ class ClientQueue
         return nil
       else
         log_destination (handle_cost)
+
+        #If the length is one, then this shift will empty us
+        #If we've been told to expect no more, then we are completed
+        if @c_queue.length == 1 && @expect_no_more
+          @queue_completed = true
+        end
         return @c_queue.shift
       end
     }
@@ -134,7 +159,7 @@ class ClientQueue
        if @c_queue.empty? || !@timing_started
          return 0, -1
        else
-         return @c_queue.first.time_in, @c_queue.first.caller_id
+         return (@start_time + @c_queue.first.time_in), @c_queue.first.caller_id
        end
    }
   end
@@ -147,8 +172,11 @@ class ClientQueue
     #Time waiting
     time_waiting = Time.now - @start_time - @c_queue.first.time_in
 
-    @log.puts "#{@c_queue.first.caller_id},#{time_waiting.round(1)},#{handle_cost}"
-    #puts "#{@c_queue.first.caller_id},#{time_waiting},#{handle_cost}"
+    if @log
+      @log.puts "#{@c_queue.first.caller_id},#{time_waiting.round(1)},#{handle_cost}"
+    else #For Testing
+      puts "#{@c_queue.first.caller_id},#{time_waiting},#{handle_cost}"
+    end
   end
   #---------------------------------------------------------------------------
 

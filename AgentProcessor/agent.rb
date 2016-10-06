@@ -20,19 +20,22 @@ class Agent
 
     client_message = ClientCommunication.new(ClientCommunication::request_client)
 
-    #????
     puts "Agent::send_client_request"
-    #????
 
     #Ask for a client to handle
     socket.send( client_message.to_json, 0 )
 
-    #????
-    puts "Agent:Message printed to socket:" + client_message.to_json + "|"
-    #????
+    #puts "Agent:Message printed to socket:" + client_message.to_json + "|"
 
     #Get the response message
-    handler_response = JSON.parse(socket.recv(1024), create_additions: true )
+    communication = socket.recv(1024)
+
+    if communication.length >= 2
+      handler_response = JSON.parse(communication, create_additions: true )
+    else
+      #Bad Communication
+      puts "Agent: ERROR! - Bad message from AgentProcessor - #{communication}"
+    end #
 
     return handler_response
   end #End send_client_request

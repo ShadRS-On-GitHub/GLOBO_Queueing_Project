@@ -42,7 +42,7 @@ class ClientCommunication
   # The TCP port used for ClientCommunication
   # Should really be dynamic and not hard coded
   def self.port
-    return 181
+    return 1354
   end
 
   #---------------------------------------------------------------------------

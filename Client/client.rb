@@ -36,4 +36,9 @@ class Client
     new(*client['data'])
   end
 
+  #Write to a string
+  def to_s
+    "Client(#{caller_id}, #{time_in},#{time_to_handle})"
+  end
+
 end #End Class Client
